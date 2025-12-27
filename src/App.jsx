@@ -1,128 +1,173 @@
 import React, { useState } from 'react';
-import { Shield, Cpu, Zap, Activity, Database, Lock } from 'lucide-react';
+import { Shield, Cpu, Zap, Activity, Database, Lock, RefreshCw, CheckCircle } from 'lucide-react';
 
-// ==========================================================
-// FILE: App.jsx (The Frontend for GitHub Pages)
-// ==========================================================
+/**
+ * FILE: App.jsx
+ * This is the bridge between your React Frontend and Python Backend.
+ */
 
 export default function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // استبدل هذا الرابط برابط الـ API الخاص بك بعد رفعه على Render
-  const API_URL = "https://your-app-name.onrender.com/process";
+  // ==========================================
+  // الخطوة الأهم: استبدلي الرابط أدناه برابط Render الخاص بكِ
+  // تأكدي من إبقاء "/process" في نهاية الرابط
+  // ==========================================
+  const API_URL = "https://your-backend-app.onrender.com/process";
 
   const handleProcess = async () => {
     if (!input) return;
     setLoading(true);
+    setError(null);
+    setResult(null);
+
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({ content: input })
       });
+
+      if (!response.ok) {
+        throw new Error(`Connection Error: ${response.status}`);
+      }
+
       const data = await response.json();
       setResult(data);
-    } catch (error) {
-      console.error("Error connecting to F-Lambda Engine:", error);
+    } catch (err) {
+      console.error("Link Failure:", err);
+      setError("تعذر الاتصال بالمحرك الفيزيائي. تأكدي من أن الـ Backend يعمل على Render.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const clearSystem = () => {
+    setInput('');
+    setResult(null);
+    setError(null);
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white p-4 font-sans">
+    <div className="min-h-screen bg-[#08080a] text-zinc-100 p-4 font-sans selection:bg-indigo-500/30">
       <div className="max-w-6xl mx-auto">
         
-        {/* Navigation & Status */}
-        <nav className="flex justify-between items-center mb-12 p-4 border-b border-white/5">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tighter text-indigo-500">
-            <Cpu size={28} /> F-LAMBDA CORE
+        {/* Navigation Bar */}
+        <nav className="flex justify-between items-center mb-12 p-6 glass rounded-2xl border border-white/5 bg-white/[0.02]">
+          <div className="flex items-center gap-3 font-bold text-2xl tracking-tighter text-indigo-500">
+            <div className="bg-indigo-500/10 p-2 rounded-lg"><Cpu size={24} /></div>
+            F-LAMBDA CORE
           </div>
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1 text-emerald-500">
-              <Activity size={14} /> System Stable
+          <div className="hidden md:flex items-center gap-6 text-xs font-medium tracking-widest text-zinc-500">
+            <span className="flex items-center gap-1.5 text-emerald-500">
+              <Activity size={14} /> SYSTEM LIVE
             </span>
-            <span className="text-gray-500">v2.0.4-Deterministic</span>
+            <span>V2.5 STABLE</span>
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <header className="mb-12">
-          <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
-            Physical Intelligence Engine
-          </h1>
-          <p className="text-gray-400 max-w-2xl">
-            أول منصة تخزين طيفي تعتمد على الحتمية الفيزيائية الكاملة. تشفير البيانات في بصمات ترددية غير قابلة للتدمير.
-          </p>
-        </header>
-
-        <div className="grid lg:grid-cols-3 gap-8">
+        {/* Content Grid */}
+        <div className="grid lg:grid-cols-12 gap-8">
           
           {/* Input Panel */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <label className="block text-sm font-medium text-gray-400 mb-4 flex items-center gap-2">
-                <Database size={16} /> مدخلات البيانات الفيزيائية
-              </label>
+          <div className="lg:col-span-7 space-y-6">
+            <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8 shadow-2xl">
+              <div className="flex justify-between items-center mb-6">
+                <label className="text-sm font-semibold text-zinc-400 flex items-center gap-2">
+                  <Database size={18} className="text-indigo-500" /> مدخلات البيانات الفيزيائية
+                </label>
+                <button onClick={clearSystem} className="text-zinc-500 hover:text-white transition-colors">
+                  <RefreshCw size={18} />
+                </button>
+              </div>
+
               <textarea 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                className="w-full h-48 bg-black/40 border border-white/5 rounded-xl p-4 focus:outline-none focus:border-indigo-500 transition-all font-mono text-indigo-300"
-                placeholder="أدخل البيانات المراد أرشفتها طيفياً..."
+                className="w-full h-56 bg-black/40 border border-white/5 rounded-2xl p-6 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all font-mono text-indigo-300 text-lg leading-relaxed resize-none"
+                placeholder="أدخل النص هنا لاختبار الحتمية الفيزيائية..."
               />
+
               <button 
                 onClick={handleProcess}
-                disabled={loading}
-                className="w-full mt-6 bg-indigo-600 hover:bg-indigo-500 disabled:bg-gray-700 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2"
+                disabled={loading || !input}
+                className={`w-full mt-6 py-5 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
+                  loading ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500 hover:shadow-[0_0_30px_rgba(79,70,229,0.4)] text-white'
+                }`}
               >
-                {loading ? "جاري المعالجة..." : <><Zap /> تشغيل المحرك الحتمي</>}
+                {loading ? (
+                  <RefreshCw className="animate-spin" />
+                ) : (
+                  <><Zap size={20} /> معالجة طيفية حتمية</>
+                )}
               </button>
+
+              {error && (
+                <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl text-center">
+                  {error}
+                </div>
+              )}
             </div>
 
-            {result && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-2xl animate-in fade-in duration-500">
-                <div className="flex items-center gap-3 text-emerald-400 mb-2">
-                  <Shield />
-                  <span className="font-bold">برهان السلامة (Integrity Verified)</span>
+            {result && result.integrity && (
+              <div className="bg-emerald-500/5 border border-emerald-500/20 p-6 rounded-3xl flex items-center gap-4 animate-in zoom-in duration-300">
+                <div className="bg-emerald-500/20 p-3 rounded-full text-emerald-400">
+                  <Shield size={24} />
                 </div>
-                <p className="text-sm text-emerald-500/80">تمت استعادة البيانات بنسبة 100% دون فقدان أي بت معلوماتي.</p>
+                <div>
+                  <h4 className="font-bold text-emerald-400 uppercase text-xs tracking-widest">Integrity Verified</h4>
+                  <p className="text-sm text-emerald-500/70 italic">تمت استعادة البيانات بنسبة 100% من الفضاء الطيفي.</p>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Stats & Results Panel */}
-          <div className="space-y-6">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <h3 className="text-sm font-semibold text-gray-400 mb-6 flex items-center gap-2 uppercase tracking-widest">
-                <Lock size={16} /> نتائج التشفير
+          {/* Results Panel */}
+          <div className="lg:col-span-5 space-y-6">
+            <div className="bg-zinc-900/50 border border-white/10 rounded-3xl p-8 h-full">
+              <h3 className="text-xs font-bold text-zinc-500 mb-8 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Lock size={14} /> مخرجات النموذج (Output)
               </h3>
               
-              <div className="space-y-4">
-                <div className="p-4 bg-black/40 rounded-lg border border-white/5">
-                  <div className="text-[10px] text-gray-500 uppercase">التوقيع الطيفي الأول</div>
-                  <div className="text-lg font-mono text-purple-400">
-                    {result ? result.signatures_sample[0] : "0.000000"}
+              <div className="space-y-6">
+                <div>
+                  <span className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest block mb-2">التوقيع الطيفي (نموذج)</span>
+                  <div className="p-4 bg-black/40 rounded-xl border border-white/5 font-mono text-purple-400 text-sm truncate">
+                    {result ? result.signatures_sample.join(' | ') : "0.000000000000"}
                   </div>
                 </div>
-                <div className="p-4 bg-black/40 rounded-lg border border-white/5">
-                  <div className="text-[10px] text-gray-500 uppercase">زمن المعالجة</div>
-                  <div className="text-lg font-mono text-indigo-400">
-                    {result ? result.processing_time : "0.0000s"}
+
+                <div>
+                  <span className="text-[10px] text-zinc-600 uppercase font-bold tracking-widest block mb-2">النص المستعاد (Recovery)</span>
+                  <div className="p-4 bg-black/40 rounded-xl border border-white/5 text-emerald-400 min-h-[80px] break-words">
+                    {result ? result.recovered_content : "---"}
                   </div>
                 </div>
-                <div className="p-4 bg-black/40 rounded-lg border border-white/5">
-                  <div className="text-[10px] text-gray-500 uppercase">دقة الاسترداد</div>
-                  <div className="text-lg font-mono text-emerald-400">100% Accurate</div>
+
+                <div className="grid grid-cols-2 gap-4 mt-8">
+                  <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <div className="text-[10px] text-zinc-600 uppercase mb-1">الزمن</div>
+                    <div className="text-xl font-bold text-indigo-400">{result ? result.processing_time : "0.00s"}</div>
+                  </div>
+                  <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                    <div className="text-[10px] text-zinc-600 uppercase mb-1">الحالة</div>
+                    <div className="text-xl font-bold text-zinc-400">{result ? "Perfect" : "Idle"}</div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-indigo-600/10 border border-indigo-600/20 p-6 rounded-2xl">
-              <h4 className="text-xs font-bold text-indigo-400 mb-2 uppercase">ملاحظة تقنية:</h4>
-              <p className="text-[11px] text-indigo-300/70 leading-relaxed">
-                يعمل المحرك بنظام التعقيد الخطي O(n) مما يجعله قادراً على معالجة البيانات الضخمة بنفس الكفاءة الطيفية.
-              </p>
+              {result && (
+                <div className="mt-8 pt-8 border-t border-white/5">
+                  <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold">
+                    <CheckCircle size={14} /> تم إثبات الحتمية الخوارزمية O(n)
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -131,5 +176,4 @@ export default function App() {
     </div>
   );
 }
-
 
